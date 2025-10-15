@@ -23,9 +23,9 @@ Dữ liệu e-commerce (từ file ecommerce.csv) được nạp lên HDFS và x�
 
 ### 2.Tổng hợp & phân tích (Aggregation):
 Tạo các bảng thống kê như:
-**    agg_by_cat — Tổng hợp theo danh mục.
-    agg_by_brand — Tổng hợp theo thương hiệu.
-    agg_by_type — Tổng hợp theo loại sự kiện.**
+  - agg_by_cat — Tổng hợp theo danh mục.
+  - agg_by_brand — Tổng hợp theo thương hiệu.
+  - agg_by_type — Tổng hợp theo loại sự kiện.**
 
 ### 3.Huấn luyện mô hình ALS:
 Sử dụng Spark MLlib để xây dựng hệ thống gợi ý sản phẩm cá nhân hóa cho từng user_id.
@@ -35,6 +35,7 @@ Kết quả Spark job được lưu tại data/outputs/.
 Streamlit Dashboard đọc dữ liệu này để hiển thị biểu đồ, bảng và gợi ý.
 
 ## 🧰 Cấu trúc chính
+```
 bigdata-ecommerce-project/
 ├── dashboard/           # Ứng dụng Streamlit
 ├── data/                # Dữ liệu thô + đầu ra
@@ -44,7 +45,7 @@ bigdata-ecommerce-project/
 ├── docker-compose.yml   # Khởi chạy cluster Hadoop + Spark
 ├── requirements.txt     # Thư viện Python cho dashboard
 └── README.md            # Tài liệu hướng dẫn
-
+```
 
 ## 🚀 HƯỚNG DẪN CHẠY CỤM BIG DATA (HADOOP + SPARK + STREAMLIT)
 
