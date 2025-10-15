@@ -1,0 +1,118 @@
+version: "3.8"
+
+services:
+  # --- Hadoop NameNode ---
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: namenode
+    environment:
+      - CLUSTER_NAME=bigdata
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - HDFS_CONF_dfs_replication=1
+      - HDFS_NAMENODE_USER=root
+    ports:
+      - "9870:9870"   # HDFS NameNode Web UI
+      - "9000:9000"   # RPC (fs.defaultFS)
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+      - ./data:/data
+    networks:
+      - bigdata_network
+    restart: unless-stopped
+
+  # --- Hadoop DataNode ---
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode
+    depends_on:
+      - namenode
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - HDFS_CONF_dfs_replication=1
+      - SERVICE_PRECONDITION=namenode:9870
+      - HDFS_DATANODE_USER=root
+    ports:
+      - "9864:9864"   # HDFS DataNode Web UI
+    volumes:
+      - hadoop_datanode:/hadoop/dfs/data
+    networks:
+      - bigdata_network
+    restart: unless-stopped
+
+  # --- Spark Master (custom image with Python 3 + numpy) ---
+  spark-master:
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
+    container_name: spark-master
+    depends_on:
+      - namenode
+      - datanode
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - SPARK_DRIVER_MEMORY=2G
+    ports:
+      - "7077:7077"
+      - "8080:8080"
+    volumes:
+      - ./spark_jobs:/opt/spark_jobs
+      - ./data:/data
+    networks:
+      - bigdata_network
+    restart: unless-stopped
+
+  # --- Spark Worker 1 ---
+  spark-worker-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
+    container_name: spark-worker-1
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_CORES=3
+      - SPARK_WORKER_MEMORY=4G
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./data:/data
+    networks:
+      - bigdata_network
+    restart: unless-stopped
+
+  # --- Spark Worker 2 ---
+  spark-worker-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
+    container_name: spark-worker-2
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_CORES=3
+      - SPARK_WORKER_MEMORY=4G
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    ports:
+      - "8082:8081"
+    volumes:
+      - ./data:/data
+    networks:
+      - bigdata_network
+    restart: unless-stopped
+
+networks:
+  bigdata_network:
+    driver: bridge
+
+volumes:
+  hadoop_namenode:
+  hadoop_datanode:

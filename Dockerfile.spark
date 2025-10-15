@@ -1,0 +1,13 @@
+# Dựa trên image spark-worker chuẩn
+FROM bde2020/spark-worker:3.1.1-hadoop3.2
+
+USER root
+
+# Cài đặt Python và thư viện cần thiết
+RUN apk add --no-cache python3 py3-pip build-base gfortran musl-dev linux-headers python3-dev && \
+    python3 -m pip install --upgrade pip && \
+    pip3 install --no-cache-dir numpy==1.21.6 pandas==1.3.5 pyspark==3.1.1 && \
+    ln -sf /usr/bin/python3 /usr/bin/python
+
+# Giữ nguyên script worker.sh của image gốc
+CMD ["/bin/bash", "/worker.sh"]
